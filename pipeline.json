@@ -1,9 +1,20 @@
 {
-    "name": "default pipeline",
-    "version": "0.0.1",
+    "name":
+    "default pipeline",
+    "version":
+    "0.0.1",
     "logger": {
         "token": "TELEGRAM_BOT_TOKEN",
         "error_log": "error.log"
     },
-    "pipeline": ["enumer"]
+    "pipeline": [
+        {
+            "name": "enumer",
+            "startJob": true,
+            "pipeTo": "flink"
+        },
+        {
+            "name": "flink"
+        }
+    ]
 }

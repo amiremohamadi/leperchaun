@@ -1,4 +1,4 @@
-from logger import Logger
+from interface import Logger
 import json
 import requests
 

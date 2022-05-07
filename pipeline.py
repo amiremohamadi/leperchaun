@@ -5,14 +5,12 @@ import json
 
 class Pipeline:
 
-    def name(self, name):
-        self.name = name
+    def __init__(self):
+        self.jobs = []
 
-    def version(self, version):
-        self.version = version
-
-    def logger(self, logger=None):
-        self.logger = logger
+    def run(self):
+        for job in self.jobs:
+            job.run()
 
 
 def build_pipeline(config):
@@ -45,12 +43,13 @@ if __name__ == '__main__':
                         '-c',
                         action='store',
                         type=str,
-                        default='pipeline.toml',
+                        default='pipeline.json',
                         help='pipeline config file')
     args = parser.parse_args()
 
     try:
-        build_pipeline(args.config)
+        pipeline = build_pipeline(args.config)
+        pipeline.run()
     except FileNotFoundError:
         print('config file not found')
     except Exception as err:
