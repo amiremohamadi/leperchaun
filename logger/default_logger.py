@@ -26,7 +26,7 @@ class DefaultLogger(Logger):
             return
         try:
             data = json.dumps({
-                'username': self.name,
+                'username': 'test',
                 'content': msg,
             })
             requests.post(self.token,
@@ -43,6 +43,9 @@ class DefaultLogger(Logger):
             self.error_log.flush()
         except Exception as err:
             print('[logger] write_to_error_log: {}'.format(err))
+
+    def info(self, msg):
+        print(msg)
 
     def teardown(self):
         if self.error_log:

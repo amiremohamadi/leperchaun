@@ -1,4 +1,5 @@
 from logger import DefaultLogger
+from enumer import EnumerJob
 import argparse
 import json
 
@@ -6,11 +7,32 @@ import json
 class Pipeline:
 
     def __init__(self):
-        self.jobs = []
+        self.jobs = {}
 
     def run(self):
-        for job in self.jobs:
-            job.run()
+        stack = []
+        for (_, job) in self.jobs.items():
+            if job.starter:
+                stack.append(job)
+
+        while len(stack) > 0:
+            job = stack.pop()
+            self.logger.info('{} job started'.format(job))
+            print(job.run())
+
+
+def preprocess_jobs(jobs):
+    '''get a list of jobs and make dict of them to make traversing job-graph easier and more efficient'''
+    jobs_dict = {}
+
+    for job in jobs:
+        name = job['name']
+        match name:
+            case 'enumer':
+                jobs_dict[name] = EnumerJob(['birjand.ac.ir'])
+                jobs_dict[name].starter = True
+
+    return jobs_dict
 
 
 def build_pipeline(config):
@@ -29,6 +51,10 @@ def build_pipeline(config):
                 _logger = DefaultLogger(token=logger.get('token'),
                                         error_log=logger.get('error_log'))
                 pipeline.logger = _logger
+
+            jobs = config.get('pipeline', [])
+            pipeline.jobs = preprocess_jobs(
+                jobs)  # TODO better error handling in case of key error
 
             return pipeline
     except FileNotFoundError:

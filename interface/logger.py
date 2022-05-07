@@ -9,6 +9,7 @@ class Logger:
         self.error_log = error_log
 
     def err(self, msg):
+        self.info(msg)
         self.write_to_error_log(msg)
         self.send_to_bot(msg)
 
@@ -19,6 +20,10 @@ class Logger:
     @abstractmethod
     def write_to_error_log(self, msg):
         '''error log can be a unix socket or file or etc. based on your implementation'''
+        raise NotImplementedError
+
+    @abstractmethod
+    def info(self, msg):
         raise NotImplementedError
 
     @abstractmethod
