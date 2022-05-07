@@ -1,0 +1,9 @@
+{
+    "name": "default pipeline",
+    "version": "0.0.1",
+    "logger": {
+        "token": "TELEGRAM_BOT_TOKEN",
+        "error_log": "error.log"
+    },
+    "pipeline": ["enumer"]
+}
