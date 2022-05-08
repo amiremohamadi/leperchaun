@@ -27,10 +27,9 @@ def preprocess_jobs(jobs):
 
     for job in jobs:
         name = job['name']
-        match name:
-            case 'enumer':
-                jobs_dict[name] = EnumerJob(['birjand.ac.ir'])
-                jobs_dict[name].starter = True
+        if name == 'enumer':
+            jobs_dict[name] = EnumerJob(['birjand.ac.ir'])
+            jobs_dict[name].starter = True
 
     return jobs_dict
 
