@@ -12,9 +12,6 @@
             "name": "enumer",
             "startJob": true,
             "pipeTo": "flink"
-        },
-        {
-            "name": "flink"
         }
     ]
 }
