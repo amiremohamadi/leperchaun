@@ -7,7 +7,21 @@ class EnumerJob(Job):
         return 'enumer'
 
     def _run(self):
-        return [
-            result.decode() for i in self.input
-            for result in self.process('assetfinder', i).strip().split(b'\n')
+        d1 = [
+            sub for i in self.input for sub in self.process(
+                'assetfinder', i).decode().strip().split('\n')
+            if self.check(sub, i)
         ]
+        d2 = [
+            sub for i in self.input for sub in self.process(
+                'subfinder', '-silent', '-d', i).decode().strip().split('\n')
+            if self.check(sub, i)
+        ]
+        # eliminate duplicates
+        d = list(set(d1).union(set(d2)))
+        return d
+
+    def check(self, sub, domain):
+        if domain in sub and '@' not in sub:
+            return True
+        return False

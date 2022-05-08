@@ -21,20 +21,20 @@ class Pipeline:
             print(job.run())
 
 
-def preprocess_jobs(jobs):
+def preprocess_jobs(jobs, domain):
     '''get a list of jobs and make dict of them to make traversing job-graph easier and more efficient'''
     jobs_dict = {}
 
     for job in jobs:
         name = job['name']
         if name == 'enumer':
-            jobs_dict[name] = EnumerJob(['birjand.ac.ir'])
+            jobs_dict[name] = EnumerJob([domain])
             jobs_dict[name].starter = True
 
     return jobs_dict
 
 
-def build_pipeline(config):
+def build_pipeline(config, domain):
     '''create pipeline runner based on config'''
     try:
         with open(config, 'r') as config:
@@ -53,7 +53,8 @@ def build_pipeline(config):
 
             jobs = config.get('pipeline', [])
             pipeline.jobs = preprocess_jobs(
-                jobs)  # TODO better error handling in case of key error
+                jobs,
+                domain)  # TODO better error handling in case of key error
 
             return pipeline
     except FileNotFoundError:
@@ -70,10 +71,16 @@ if __name__ == '__main__':
                         type=str,
                         default='pipeline.json',
                         help='pipeline config file')
+    parser.add_argument('--domain',
+                        '-d',
+                        action='store',
+                        type=str,
+                        required=True,
+                        help='domain to be hunted')
     args = parser.parse_args()
 
     try:
-        pipeline = build_pipeline(args.config)
+        pipeline = build_pipeline(args.config, args.domain)
         pipeline.run()
     except FileNotFoundError:
         print('config file not found')
