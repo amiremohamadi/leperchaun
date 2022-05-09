@@ -1,88 +1,94 @@
 from logger import DefaultLogger
-from enumer import EnumerJob
-import argparse
+from modules import modules
 import json
 
 
 class Pipeline:
 
     def __init__(self):
-        self.jobs = {}
+        self.starter_job = None
+
+    def log_err(self, msg):
+        if self.logger is not None:
+            self.logger.err(msg)
+
+    def log_info(self, msg):
+        if self.logger is not None:
+            self.logger.info(msg)
 
     def run(self):
-        stack = []
-        for (_, job) in self.jobs.items():
-            if job.starter:
-                stack.append(job)
+        if self.starter_job is None:
+            # impossible to get this state
+            self.log_err('no starter job in pipeline')
 
-        while len(stack) > 0:
-            job = stack.pop()
-            self.logger.info('{} job started'.format(job))
-            print(job.run())
+        self.starter_job.input = 'birjand.ac.ir'
+        self.starter_job.run()
+
+    def teardown(self):
+        # teardown processes recursively
+        self.starter_job.teardown()
 
 
-def preprocess_jobs(jobs, domain):
-    '''get a list of jobs and make dict of them to make traversing job-graph easier and more efficient'''
-    jobs_dict = {}
+def load_jobs(jobs):
+    mark = set()
 
-    for job in jobs:
+    def _find_job(name):
+        for job in jobs:
+            if job['name'] == name:
+                return job
+        return None
+
+    def _load_job(job):
         name = job['name']
-        if name == 'enumer':
-            jobs_dict[name] = EnumerJob([domain])
-            jobs_dict[name].starter = True
+        pipes = job.get('pipeTo', [])
 
-    return jobs_dict
+        module = modules.get(name)
+        if module is None:
+            raise Exception('module {} not found'.format(name))
+        job = module()
+
+        # keep track of jobs to detect possible cycles in config
+        if name in mark:
+            raise Exception(
+                'cycle detected in config: {} piped more than once'.format(
+                    name))
+        mark.add(name)
+
+        for pipe in pipes:
+            j = _find_job(pipe)
+            if j is None:
+                raise Exception('pipe {} not found in config'.format(pipe))
+            job.pipes.append(_load_job(j))
+
+        return job
+
+    # find starer
+    starter = [job for job in jobs if job.get('startJob')]
+    if len(starter) == 0 or len(starter) > 1:
+        raise Exception(
+            'only one starter job is required in config, found {}'.format(
+                len(starter)))
+    starter = starter[0]
+    return _load_job(starter)
 
 
 def build_pipeline(config, domain):
     '''create pipeline runner based on config'''
-    try:
-        with open(config, 'r') as config:
-            config = json.load(config)
-            pipeline = Pipeline()
+    with open(config, 'r') as config:
+        config = json.load(config)
+        pipeline = Pipeline()
 
-            # optional
-            pipeline.name = config.get('name')
-            pipeline.version = config.get('version')
+        # optional
+        pipeline.name = config.get('name')
+        pipeline.version = config.get('version')
 
-            # optional
-            if logger := config.get('logger'):
-                _logger = DefaultLogger(token=logger.get('token'),
-                                        error_log=logger.get('error_log'))
-                pipeline.logger = _logger
+        # optional
+        if logger := config.get('logger'):
+            _logger = DefaultLogger(token=logger.get('token'),
+                                    error_log=logger.get('error_log'))
+            pipeline.logger = _logger
 
-            jobs = config.get('pipeline', [])
-            pipeline.jobs = preprocess_jobs(
-                jobs,
-                domain)  # TODO better error handling in case of key error
+        jobs = config.get('pipeline', [])
+        pipeline.starter_job = load_jobs(jobs)
 
-            return pipeline
-    except FileNotFoundError:
-        print('config file not found')
-    except Exception as err:
-        print('error happened {}'.format(err))
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='pipeline runner')
-    parser.add_argument('--config',
-                        '-c',
-                        action='store',
-                        type=str,
-                        default='pipeline.json',
-                        help='pipeline config file')
-    parser.add_argument('--domain',
-                        '-d',
-                        action='store',
-                        type=str,
-                        required=True,
-                        help='domain to be hunted')
-    args = parser.parse_args()
-
-    try:
-        pipeline = build_pipeline(args.config, args.domain)
-        pipeline.run()
-    except FileNotFoundError:
-        print('config file not found')
-    except Exception as err:
-        print('error happened: {}'.format(err))
+        return pipeline

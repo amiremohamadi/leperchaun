@@ -4,14 +4,20 @@
     "version":
     "0.0.1",
     "logger": {
-        "token": "TELEGRAM_BOT_TOKEN",
         "error_log": "error.log"
     },
     "pipeline": [
         {
             "name": "enumer",
             "startJob": true,
-            "pipeTo": "flink"
+            "pipeTo": ["flinks"]
+        },
+        {
+            "name": "flinks",
+            "pipeTo": ["printer"]
+        },
+        {
+            "name": "printer"
         }
     ]
 }

@@ -10,23 +10,53 @@ class TestInterface(unittest.TestCase):
 
     def test_job_interface(self):
 
+        result = []
+
         class MyJob(Job):
 
             def __repr__(self):
                 return 'my job'
 
             def _run(self):
-                return ['result1', 'result2']
+                result.append('result1')
+                result.append('result2')
+                return None
 
-        # only list is acceptable
-        with self.assertRaises(TypeError) as context:
-            MyJob('bad input')
-            self.assertTrue(
-                'job my job input is not type of list' in context.exception)
-
-        job = MyJob(['input1', 'input2'])
-        self.assertEqual(['result1', 'result2'], job.run())
+        job = MyJob()
+        job.run()
+        self.assertEqual(['result1', 'result2'], result)
         self.assertEqual(os.path.dirname(os.path.realpath(__file__)), job.dir)
+
+    def test_job_pipeline(self):
+
+        result = []
+
+        class MyJob(Job):
+
+            def __repr__(self):
+                return 'my job'
+
+            def _run(self):
+
+                def _generator():
+                    yield 'result1'
+                    yield 'result2'
+
+                return _generator()
+
+        class AppenderJob(Job):
+
+            def __repr__(self):
+                return 'appender job'
+
+            def _run(self):
+                result.append(self.input)
+
+        job1 = MyJob()
+        job2 = AppenderJob()
+        job1.pipes = [job2]
+        job1.run()
+        self.assertEqual(['result1', 'result2'], result)
 
     def test_logger_interface(self):
 
