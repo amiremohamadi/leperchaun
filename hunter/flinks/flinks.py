@@ -32,8 +32,7 @@ class FlinksJob(Job):
         if not url.startswith('http://') and not url.startswith('https://'):
             url = 'http://' + url
 
-        d1 = self.process('gospider', '-s', url, '--sitemap')
-        d1 = map(extract_url, d1)
-        d1 = filter(filter_static_files, d1)
-        d1 = map(lambda x: url + ' -> ' + x, d1)
+        d1 = filter(
+            filter_static_files,
+            map(extract_url, self.process('gospider', '-s', url, '--sitemap')))
         return d1
