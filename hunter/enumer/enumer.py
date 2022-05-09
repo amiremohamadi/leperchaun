@@ -1,4 +1,5 @@
 from interface import Job
+from itertools import chain
 
 
 class EnumerJob(Job):
@@ -7,21 +8,14 @@ class EnumerJob(Job):
         return 'enumer'
 
     def _run(self):
-        d1 = [
-            sub for i in self.input for sub in self.process(
-                'assetfinder', i).decode().strip().split('\n')
-            if self.check(sub, i)
-        ]
-        d2 = [
-            sub for i in self.input for sub in self.process(
-                'subfinder', '-silent', '-d', i).decode().strip().split('\n')
-            if self.check(sub, i)
-        ]
-        # eliminate duplicates
-        d = list(set(d1).union(set(d2)))
-        return d
+        print('enumer ' + self.input)
+        d1 = self.process('assetfinder', self.input)
+        # TODO: subfinder
+        # return chain(d1, d2)
+        return d1
 
-    def check(self, sub, domain):
+    def validate(self, sub):
+        domain = self.input
         if domain in sub and '@' not in sub:
             return True
         return False
