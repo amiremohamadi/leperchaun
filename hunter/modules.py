@@ -5,6 +5,7 @@ from flinks import FlinksJob
 from httpx import HttpxJob
 from nuclei import NucleiJob
 from printer import PrinterJob
+from writer import WriterJob
 from unique import UniqueJob
 from rabbitmq import RabbitmqJob
 
@@ -14,6 +15,7 @@ modules = {
     'httpx': HttpxJob,
     'nuclei': NucleiJob,
     'printer': PrinterJob,
+    'writer': WriterJob,
     'unique': UniqueJob,
     'rabbitmq': RabbitmqJob,
 }
