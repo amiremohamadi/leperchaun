@@ -38,14 +38,22 @@ def load_jobs(jobs):
                 return job
         return None
 
-    def _load_job(job):
-        name = job['name']
-        pipes = job.get('pipeTo', [])
+    def _load_job(ctx):
+        name = ctx['name']
+        pipes = ctx.get('pipeTo', [])
+        direct = ctx.get('direct', False)
+
+        if len(pipes) > 1 and direct:
+            raise Exception(
+                'module {} with direct property enabled got more than 1 pipes'.
+                format(name))
 
         module = modules.get(name)
         if module is None:
             raise Exception('module {} not found'.format(name))
         job = module()
+        job.direct = direct
+        job.ctx = ctx
 
         # keep track of jobs to detect possible cycles in config
         if name in mark:

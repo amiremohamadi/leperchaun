@@ -13,8 +13,10 @@ class Job:
 
     def __init__(self):
         self.input = None
+        self.ctx = {}
         self.pipes = []
         self.starter = False
+        self.direct = False
 
         # in order to kill proccesses at teardown
         self.active_process = set()
@@ -24,10 +26,13 @@ class Job:
 
     def run(self):
         rgen = self._run()
-        # TODO: change it in a way to force every module having return val
-        # in case of not having, should return empty generator
         if rgen is None:
             return
+
+        if self.direct:
+            self.pipe(rgen)
+            return
+
         for r in rgen:
             if not self.validate(r):
                 continue
