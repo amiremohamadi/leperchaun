@@ -8,7 +8,6 @@ class EnumerJob(Job):
         return 'enumer'
 
     def _run(self):
-        print('enumer ' + self.input)
         d1 = self.process('assetfinder', self.input)
         # TODO: subfinder
         # return chain(d1, d2)
