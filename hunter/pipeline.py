@@ -21,7 +21,6 @@ class Pipeline:
             # impossible to get this state
             self.log_err('no starter job in pipeline')
 
-        self.starter_job.input = 'birjand.ac.ir'
         self.starter_job.run()
 
     def teardown(self):
@@ -98,5 +97,6 @@ def build_pipeline(config, domain):
 
         jobs = config.get('pipeline', [])
         pipeline.starter_job = load_jobs(jobs)
+        pipeline.starter_job.input = domain
 
         return pipeline
