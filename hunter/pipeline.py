@@ -41,7 +41,7 @@ def load_jobs(jobs):
     def _load_job(ctx):
         name = ctx['name']
         pipes = ctx.get('pipeTo', [])
-        direct = ctx.get('direct', False)
+        direct = ctx.get('pipeDirect', False)
 
         if len(pipes) > 1 and direct:
             raise Exception(

@@ -43,15 +43,23 @@ class Job:
             p.input = input
             p.run()
 
-    def process(self, cmd, *args):
+    def process(self, cmd, *args, stdin=None):
         '''run a subprocess in current "package" directory'''
         cmd = path.join(self.dir, cmd)
         cmd_with_args = [cmd, *args]
 
         poller = select.poll()
         proc = subprocess.Popen(cmd_with_args,
+                                stdin=subprocess.PIPE if stdin else None,
                                 stderr=subprocess.STDOUT,
                                 stdout=subprocess.PIPE)
+
+        if stdin:
+            # TODO: handle when it's not byte input
+            stdin = ('\n'.join(stdin)).encode()
+            proc.stdin.write(stdin)
+            proc.stdin.close()
+
         poller.register(proc.stdout, select.POLLIN)
         self.active_process.add(proc)
 
