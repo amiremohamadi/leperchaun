@@ -1,0 +1,27 @@
+id: open-redirect
+
+info:
+  name: Open URL redirect detection
+  author: voorivex
+  severity: low
+  description: A user-controlled input redirects users to an external website.
+  tags: redirect,generic
+
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?next=https://example.com&url=https://example.com&target=https://example.com&rurl=https://example.com&dest=https://example.com&destination=https://example.com&redir=https://example.com&redirect_uri=https://example.com&redirect_url=https://example.com&redirect=https://example.com&view=https://example.com&image_url=https://example.com&go=https://example.com&return=https://example.com&returnTo=https://example.com&return_to=https://example.com&checkout_url=https://example.com&continue=https://example.com&return_path=https://example.com"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: header
+        regex:
+          - '(?m)^(?:Location\s*?:\s*?)(?:https?:\/\/|\/\/|\/\\\\|\/\\)?(?:[a-zA-Z0-9\-_\.@]*)example\.com\/?(\/|[^.].*)?$'
+
+      - type: status
+        status:
+          - 301
+          - 302
+          - 307
+          - 308
+        condition: or
