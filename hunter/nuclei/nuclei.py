@@ -10,5 +10,6 @@ class NucleiJob(Job):
         url = self.input
         d1 = filter(
             lambda x: x != '',
-            self.process('nuclei', '-c 10', '-nts', '-nc', '--silent', '-u', url))
+            self.process('nuclei', '-c 10', '-nts', '-nc', '--silent', '-u',
+                         url))
         return d1
