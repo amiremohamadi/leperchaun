@@ -5,4 +5,3 @@ idna==3.3
 requests==2.27.1
 urllib3==1.26.9
 yapf==0.32.0
-pika==1.2.1
