@@ -1,5 +1,6 @@
 from interface import Logger
 import json
+import grequests
 import requests
 
 # TODO: make logger async
