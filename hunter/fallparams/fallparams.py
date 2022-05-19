@@ -42,10 +42,12 @@ class FallparamsJob(Job):
     def _run_generator(self):
         urls = self.input
         # TODO: remove protocol part
-        reqs = (grequests.get('http://{}'.format(url)) for url in urls)
+        reqs = (grequests.get(url) for url in urls)
 
         for resp in grequests.imap(reqs, size=20):
             for param in self.extract_params(resp.url, resp.content):
+                if not param:
+                    continue
                 yield param
 
     def extract_params(self, url, content):
@@ -53,17 +55,21 @@ class FallparamsJob(Job):
         for token in tokens:
             if isinstance(token, JS):
                 for var in self.extract_js_variables(token.content):
-                    yield var
+                    yield '{}?{}=0'.format(url, var)
             elif isinstance(token, Json):
                 try:
-                    j = json.loads(token.content)
-                    for key in j:
-                        yield key
+                    for (k, v) in json.loads(token.content).items():
+                        yield '{}?{}={}'.format(url, k, v)
                 except:
                     # TODO: logging
                     continue
             elif isinstance(token, ATag):
-                yield token.content
+                href = token.content
+                if not href.startswith('http') and url not in href:
+                    href = '{}/{}'.format(url.rstrip('/'), href.lstrip('/'))
+                yield href
+            elif isinstance(token, Input):
+                yield '{}?{}=0'.format(url, token.content)
 
     def tokenize(self, url, content):
         # cleanup query params
@@ -75,22 +81,32 @@ class FallparamsJob(Job):
             return [Json(content)]
 
         tokens = []
-        soup = BS(content, 'html.parser')
+        soup = BS(content, 'html.parser', from_encoding='iso-8859-1')
 
         # hrefs from a tags
         for a in soup.find_all('a'):
             if href := a.get('href'):
-                if href != '#':
-                    tokens.append(ATag(href))
+                if href == '#':
+                    continue
+                if href.startswith('javascript'):
+                    continue
+                tokens.append(ATag(href))
 
         # scripts
         for script in soup.find_all('script'):
-            tokens.append(JS(script.text))
+            if script.content is None:
+                continue
+            tokens.append(JS(script.content))
 
         # inputs
+        for i in soup.find_all('input'):
+            if name := i.get('name'):
+                tokens.append(Input(name))
+            if id := i.get('id'):
+                tokens.append(Input(id))
 
         return tokens
 
     def extract_js_variables(self, js_content):
-        matches = re.findall('(var|let|const)\\s+(\\w+)\\s+=\\s+', js_content)
+        matches = re.findall(b'(var|let|const)\\s+(\\w+)\\s+=\\s+', js_content)
         return [var for (_, var) in matches]
