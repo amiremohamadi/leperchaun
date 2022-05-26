@@ -29,7 +29,6 @@ class Json(Type):
     pass
 
 
-
 class FallparamsJob(Job):
     '''only works with direct pipe (leads to a better performance)'''
 

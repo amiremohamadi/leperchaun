@@ -5,6 +5,7 @@ from flinks import FlinksJob
 from httpx import HttpxJob
 from nuclei import NucleiJob
 from fallparams import FallparamsJob
+from fuzzer import FuzzerJob
 from reflector import ReflectorJob
 from printer import PrinterJob
 from unique import UniqueJob
@@ -17,6 +18,7 @@ modules = {
     'httpx': HttpxJob,
     'nuclei': NucleiJob,
     'fallparams': FallparamsJob,
+    'fuzzer': FuzzerJob,
     'reflector': ReflectorJob,
     'printer': PrinterJob,
     'unique': UniqueJob,
