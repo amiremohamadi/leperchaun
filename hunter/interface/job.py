@@ -1,5 +1,7 @@
 import subprocess
 import select
+from types import GeneratorType
+from itertools import tee
 from time import time
 from abc import abstractmethod
 from os import path
@@ -39,6 +41,18 @@ class Job:
             self.pipe(r)
 
     def pipe(self, input):
+        if isinstance(input, GeneratorType):
+            if len(self.pipes) == 2:
+                g1, g2 = tee(input)
+
+                p1 = self.pipes[0]
+                p2 = self.pipes[1]
+
+                p1.input = g1
+                p2.input = g2
+                p1.run()
+                p2.run()
+
         for p in self.pipes:
             p.input = input
             p.run()

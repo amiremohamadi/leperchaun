@@ -42,7 +42,7 @@ def load_jobs(jobs):
         pipes = ctx.get('pipeTo', [])
         direct = ctx.get('pipeDirect', False)
 
-        if len(pipes) > 1 and direct:
+        if len(pipes) > 2 and direct:
             raise Exception(
                 'module {} with direct property enabled got more than 1 pipes'.
                 format(name))
@@ -55,11 +55,11 @@ def load_jobs(jobs):
         job.ctx = ctx
 
         # keep track of jobs to detect possible cycles in config
-        if name in mark:
-            raise Exception(
-                'cycle detected in config: {} piped more than once'.format(
-                    name))
-        mark.add(name)
+        # if name in mark:
+        #     raise Exception(
+        #         'cycle detected in config: {} piped more than once'.format(
+        #             name))
+        # mark.add(name)
 
         for pipe in pipes:
             j = _find_job(pipe)

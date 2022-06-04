@@ -1,8 +1,18 @@
 from interface import Job
 from collections import defaultdict
 from urllib.parse import urlparse, parse_qs
+import re
+import sys
 
 verbose_level = '0'
+
+
+def extract_url(text):
+    '''extract url from string'''
+    url = re.search("(?P<url>https?://[^\s\]]+)", text)
+    if not url:
+        return ''
+    return url.group('url')
 
 
 class FuzzerJob(Job):
@@ -25,17 +35,18 @@ class FuzzerJob(Job):
             for q in parse_qs(parsed.query):
                 urls[url].append(q)
 
+            print('[FUZZER_JOB]', url, file=sys.stderr)
             # fuzzing
             for result in self.process('x8',
-                                    '-v',
-                                    verbose_level,
-                                    '-O',
-                                    'url',
-                                    '-u',
-                                    url,
-                                    '-w',
-                                    '/dev/stdin',
-                                    stdin=(x for x in urls[url])):
-                result = result.strip()
+                                       '-v',
+                                       verbose_level,
+                                       '-O',
+                                       'url',
+                                       '-u',
+                                       url,
+                                       '-w',
+                                       '/dev/stdin',
+                                       stdin=(x for x in urls[url])):
+                result = extract_url(result)
                 if urlparse(result).query:
                     yield result

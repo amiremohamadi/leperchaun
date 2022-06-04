@@ -50,6 +50,8 @@ class FallparamsJob(Job):
                 yield param
 
     def extract_params(self, url, content):
+        parsed = urlparse(url)
+        host = '{}://{}'.format(parsed.scheme, parsed.netloc)
         tokens = self.tokenize(url, content)
         for token in tokens:
             if isinstance(token, JS):
@@ -64,8 +66,13 @@ class FallparamsJob(Job):
                     continue
             elif isinstance(token, ATag):
                 href = token.content
-                if not href.startswith('http') and url not in href:
-                    href = '{}/{}'.format(url.rstrip('/'), href.lstrip('/'))
+                if not href.startswith('http') and host not in href:
+                    if href.startswith('.'):
+                        href = '{}/{}'.format(url.rstrip('/'),
+                                              href.lstrip('/'))
+                    else:
+                        href = '{}/{}'.format(host.rstrip('/'),
+                                              href.lstrip('/'))
                 yield href
             elif isinstance(token, Input):
                 yield '{}?{}=0'.format(url, token.content)
